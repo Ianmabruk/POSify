@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { products as productsApi, sales as salesApi, stats } from '../../services/api';
-import { ShoppingCart, Trash2, LogOut, Plus, Minus, Search, DollarSign, TrendingUp, Package, BarChart3 } from 'lucide-react';
+import { ShoppingCart, Trash2, LogOut, Plus, Minus, Search, DollarSign, TrendingUp, Package, BarChart3, Edit2 } from 'lucide-react';
 
 export default function CashierPOS() {
   const { user, logout } = useAuth();
@@ -9,6 +9,9 @@ export default function CashierPOS() {
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [activeView, setActiveView] = useState('pos');
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({ name: '', price: '', quantity: '', unit: 'pcs' });
   const [searchTerm, setSearchTerm] = useState('');
   const [salesData, setSalesData] = useState([]);
   const [statsData, setStatsData] = useState({});
@@ -119,6 +122,17 @@ export default function CashierPOS() {
           >
             <BarChart3 className="w-4 h-4 inline mr-2" />
             Sales
+          </button>
+        )}
+        {user?.permissions?.manageProducts && (
+          <button
+            onClick={() => setActiveView('stock')}
+            className={`px-6 py-2 rounded-lg font-medium transition-all ${
+              activeView === 'stock' ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Package className="w-4 h-4 inline mr-2" />
+            Stock
           </button>
         )}
       </div>
@@ -234,6 +248,155 @@ export default function CashierPOS() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Stock Management View */}
+      {activeView === 'stock' && user?.permissions?.manageProducts && (
+        <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Stock Management</h2>
+            <button 
+              onClick={() => {
+                setShowAddProduct(true);
+                setProductForm({ name: '', price: '', quantity: '', unit: 'pcs' });
+              }}
+              className="btn-primary flex items-center gap-2 bg-gradient-to-r from-green-600 to-teal-600"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </button>
+          </div>
+
+          <div className="card shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Product</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Price</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Stock</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productList.map((product) => (
+                    <tr key={product.id} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium">{product.name}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-green-600">KSH {product.price?.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`font-medium ${product.quantity < 10 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {product.quantity} {product.unit}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setProductForm({ name: product.name, price: product.price, quantity: product.quantity, unit: product.unit || 'pcs' });
+                            }}
+                            className="p-2 hover:bg-green-50 rounded-lg text-green-600"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              if (confirm('Delete this product?')) {
+                                await productsApi.delete(product.id);
+                                loadData();
+                              }
+                            }}
+                            className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Add/Edit Product Modal */}
+          {(showAddProduct || editingProduct) && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md">
+                <h3 className="text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add Product'}</h3>
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    if (editingProduct) {
+                      await productsApi.update(editingProduct.id, {
+                        ...editingProduct,
+                        ...productForm,
+                        price: parseFloat(productForm.price),
+                        quantity: parseFloat(productForm.quantity)
+                      });
+                    } else {
+                      await productsApi.create({
+                        ...productForm,
+                        price: parseFloat(productForm.price),
+                        cost: parseFloat(productForm.price) * 0.6,
+                        quantity: parseFloat(productForm.quantity),
+                        category: 'raw'
+                      });
+                    }
+                    setShowAddProduct(false);
+                    setEditingProduct(null);
+                    loadData();
+                  } catch (error) {
+                    alert('Failed: ' + error.message);
+                  }
+                }} className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Product Name"
+                    className="input"
+                    value={productForm.name}
+                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Price"
+                    className="input"
+                    value={productForm.price}
+                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                    required
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Quantity"
+                      className="input"
+                      value={productForm.quantity}
+                      onChange={(e) => setProductForm({ ...productForm, quantity: e.target.value })}
+                      required
+                    />
+                    <select
+                      className="input"
+                      value={productForm.unit}
+                      onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
+                    >
+                      <option value="pcs">Pieces</option>
+                      <option value="kg">Kilograms</option>
+                      <option value="L">Liters</option>
+                      <option value="g">Grams</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="submit" className="btn-primary flex-1">{editingProduct ? 'Update' : 'Add'}</button>
+                    <button type="button" onClick={() => { setShowAddProduct(false); setEditingProduct(null); }} className="btn-secondary">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
