@@ -56,7 +56,7 @@ exports.handler = async (event, context) => {
         plan: null,
         price: null,
         active: false,
-        permissions: { viewSales: true, viewInventory: true, viewExpenses: false, manageProducts: false },
+        permissions: { viewSales: true, viewInventory: true, viewExpenses: false, manageProducts: true },
         createdAt: new Date().toISOString()
       };
       storage.users.push(user);
