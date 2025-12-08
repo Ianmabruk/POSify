@@ -40,7 +40,9 @@ const tokenRequired = (handler) => async (event, context) => {
 };
 
 exports.handler = async (event, context) => {
-  const path = event.path.replace('/.netlify/functions/api', '');
+  // Handle both /api/* (redirected) and /.netlify/functions/api/* (direct)
+  let path = event.path.replace('/.netlify/functions/api', '').replace('/api', '');
+  if (!path) path = '/';
   const method = event.httpMethod;
   
   const headers = {
