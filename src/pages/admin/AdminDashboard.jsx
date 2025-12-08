@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, ShoppingBag, Package, Layers, TrendingDown, 
-  Users, Settings, LogOut, Menu, X, ExternalLink 
+  Users, Settings, LogOut, Menu, X, ExternalLink, Clock 
 } from 'lucide-react';
 import Overview from './Overview';
 import Inventory from './Inventory';
@@ -11,6 +11,7 @@ import Recipes from './Recipes';
 import Sales from './Sales';
 import Expenses from './Expenses';
 import UserManagement from './UserManagement';
+import TimeTracking from './TimeTracking';
 import SettingsPage from './SettingsPage';
 
 export default function AdminDashboard() {
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
     { id: 'recipes', label: 'Recipes/BOM', icon: Layers, path: '/admin/recipes' },
     { id: 'expenses', label: 'Expenses', icon: TrendingDown, path: '/admin/expenses' },
     { id: 'users', label: 'Users', icon: Users, path: '/admin/users' },
+    { id: 'time', label: 'Time Tracking', icon: Clock, path: '/admin/time' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' }
   ];
 
@@ -127,6 +129,7 @@ export default function AdminDashboard() {
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/users" element={<UserManagement />} />
+            <Route path="/time" element={<TimeTracking />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>

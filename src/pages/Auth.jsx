@@ -26,9 +26,17 @@ export default function Auth() {
           setLoading(false);
           return;
         }
+        if (formData.newPassword.length < 6) {
+          setError('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
         const res = await auth.login({ email: formData.email, newPassword: formData.newPassword });
-        login(res.token, res.user);
-        navigate('/cashier');
+        if (res.token && res.user) {
+          login(res.token, res.user);
+          // Force redirect to cashier dashboard
+          window.location.href = '/cashier';
+        }
         return;
       }
 
@@ -39,6 +47,7 @@ export default function Auth() {
       // Check if user needs to set password
       if (res.needsPasswordSetup) {
         setNeedsPasswordSetup(true);
+        setFormData({ ...formData, email: res.email });
         setError('');
         setLoading(false);
         return;
@@ -46,11 +55,19 @@ export default function Auth() {
 
       login(res.token, res.user);
       
+      // Cashiers added by admin go directly to cashier dashboard
+      if (res.user.role === 'cashier' && res.user.addedByAdmin) {
+        window.location.href = '/cashier';
+        return;
+      }
+      
       // Users without active plan must choose subscription
       if (!res.user.active || !res.user.plan) {
         navigate('/subscription');
       } else if (res.user.role === 'admin') {
         navigate('/admin');
+      } else if (res.user.role === 'cashier') {
+        navigate('/cashier');
       } else {
         navigate('/dashboard');
       }

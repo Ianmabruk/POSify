@@ -16,10 +16,48 @@ export default function CashierPOS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [salesData, setSalesData] = useState([]);
   const [statsData, setStatsData] = useState({});
+  const [clockedIn, setClockedIn] = useState(false);
+  const [clockInTime, setClockInTime] = useState(null);
 
   useEffect(() => {
     loadData();
+    // Check if already clocked in today
+    const todayClockIn = localStorage.getItem(`clockIn_${user?.id}_${new Date().toDateString()}`);
+    if (todayClockIn) {
+      setClockedIn(true);
+      setClockInTime(new Date(todayClockIn));
+    }
   }, []);
+
+  const handleClockIn = () => {
+    const now = new Date();
+    localStorage.setItem(`clockIn_${user?.id}_${now.toDateString()}`, now.toISOString());
+    setClockedIn(true);
+    setClockInTime(now);
+  };
+
+  const handleClockOut = () => {
+    const now = new Date();
+    const clockInData = localStorage.getItem(`clockIn_${user?.id}_${new Date().toDateString()}`);
+    if (clockInData) {
+      const clockIn = new Date(clockInData);
+      const duration = Math.floor((now - clockIn) / 1000 / 60); // minutes
+      // Store clock out record
+      const records = JSON.parse(localStorage.getItem('clockRecords') || '[]');
+      records.push({
+        userId: user?.id,
+        userName: user?.name,
+        clockIn: clockIn.toISOString(),
+        clockOut: now.toISOString(),
+        duration,
+        date: new Date().toDateString()
+      });
+      localStorage.setItem('clockRecords', JSON.stringify(records));
+      localStorage.removeItem(`clockIn_${user?.id}_${new Date().toDateString()}`);
+    }
+    setClockedIn(false);
+    setClockInTime(null);
+  };
 
   const loadData = async () => {
     const [products, sales, statistics] = await Promise.all([
@@ -97,8 +135,22 @@ export default function CashierPOS() {
             <div className="text-right hidden md:block">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
+              {clockedIn && clockInTime && (
+                <p className="text-xs text-green-600 font-medium">Clocked in: {clockInTime.toLocaleTimeString()}</p>
+              )}
             </div>
             <div className="flex items-center gap-2">
+              {clockedIn ? (
+                <button onClick={handleClockOut} className="btn-secondary flex items-center gap-1 md:gap-2 text-sm md:text-base px-2 md:px-4 bg-red-50 text-red-600 border-red-200">
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden md:inline">Clock Out</span>
+                </button>
+              ) : (
+                <button onClick={handleClockIn} className="btn-secondary flex items-center gap-1 md:gap-2 text-sm md:text-base px-2 md:px-4 bg-green-50 text-green-600 border-green-200">
+                  <LogOut className="w-4 h-4 rotate-180" />
+                  <span className="hidden md:inline">Clock In</span>
+                </button>
+              )}
               <button onClick={() => window.location.href = '/cashier/settings'} className="btn-secondary flex items-center gap-1 md:gap-2 text-sm md:text-base px-2 md:px-4">
                 <Settings className="w-4 h-4" />
                 <span className="hidden md:inline">Settings</span>

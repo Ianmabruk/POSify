@@ -68,7 +68,7 @@ exports.handler = async (event, context) => {
     if (path === '/auth/login' && method === 'POST') {
       const data = JSON.parse(event.body);
       const user = storage.users.find(u => u.email === data.email);
-      if (!user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid credentials' }) };
+      if (!user) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Email not found. Please check your email or contact admin.' }) };
       
       // First time login - set password
       if (user.needsPasswordSetup && data.newPassword) {
@@ -76,16 +76,16 @@ exports.handler = async (event, context) => {
         user.needsPasswordSetup = false;
         const token = createToken({ id: user.id, email: user.email, role: user.role });
         const { password, ...userWithoutPassword } = user;
-        return { statusCode: 200, headers, body: JSON.stringify({ token, user: userWithoutPassword }) };
+        return { statusCode: 200, headers, body: JSON.stringify({ token, user: userWithoutPassword, firstLogin: true }) };
       }
       
       // Check if needs password setup
       if (user.needsPasswordSetup) {
-        return { statusCode: 200, headers, body: JSON.stringify({ needsPasswordSetup: true, userId: user.id, email: user.email }) };
+        return { statusCode: 200, headers, body: JSON.stringify({ needsPasswordSetup: true, userId: user.id, email: user.email, role: user.role }) };
       }
       
       // Normal login
-      if (user.password !== data.password) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid credentials' }) };
+      if (user.password !== data.password) return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid password' }) };
       const token = createToken({ id: user.id, email: user.email, role: user.role });
       const { password, ...userWithoutPassword } = user;
       return { statusCode: 200, headers, body: JSON.stringify({ token, user: userWithoutPassword }) };
@@ -101,7 +101,19 @@ exports.handler = async (event, context) => {
 
       if (path === '/users' && method === 'POST') {
         if (event.user.role !== 'admin') return { statusCode: 403, headers, body: JSON.stringify({ error: 'Admin access required' }) };
-        const user = { id: storage.users.length + 1, ...body, password: null, needsPasswordSetup: true, role: 'cashier', plan: 'basic', price: 900, active: true, createdAt: new Date().toISOString() };
+        // Cashiers added by Ultra admin get access automatically
+        const user = { 
+          id: storage.users.length + 1, 
+          ...body, 
+          password: null, 
+          needsPasswordSetup: true, 
+          role: 'cashier', 
+          plan: 'ultra', 
+          price: 0, 
+          active: true, 
+          addedByAdmin: true,
+          createdAt: new Date().toISOString() 
+        };
         storage.users.push(user);
         const { password, ...userWithoutPassword } = user;
         return { statusCode: 201, headers, body: JSON.stringify(userWithoutPassword) };
