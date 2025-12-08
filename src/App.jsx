@@ -5,6 +5,7 @@ import Auth from './pages/Auth';
 import Subscription from './pages/Subscription';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CashierPOS from './pages/cashier/CashierPOS';
+import CashierSettings from './pages/cashier/CashierSettings';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
@@ -48,6 +49,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
           <Route path="/admin/*" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
           <Route path="/cashier" element={<ProtectedRoute><CashierPOS /></ProtectedRoute>} />
+          <Route path="/cashier/settings" element={<ProtectedRoute><CashierSettings /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

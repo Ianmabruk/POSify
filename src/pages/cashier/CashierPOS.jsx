@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { products as productsApi, sales as salesApi, stats } from '../../services/api';
-import { ShoppingCart, Trash2, LogOut, Plus, Minus, Search, DollarSign, TrendingUp, Package, BarChart3, Edit2 } from 'lucide-react';
+import { ShoppingCart, Trash2, LogOut, Plus, Minus, Search, DollarSign, TrendingUp, Package, BarChart3, Edit2, Settings } from 'lucide-react';
 
 export default function CashierPOS() {
   const { user, logout } = useAuth();
@@ -94,10 +94,16 @@ export default function CashierPOS() {
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
-            <button onClick={logout} className="btn-secondary flex items-center gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200">
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => window.location.href = '/cashier/settings'} className="btn-secondary flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </button>
+              <button onClick={logout} className="btn-secondary flex items-center gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200">
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </nav>

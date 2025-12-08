@@ -24,8 +24,8 @@ export default function Auth() {
       
       login(res.token, res.user);
       
-      // All users go through subscription selection
-      if (!res.user.active) {
+      // Users without active plan must choose subscription
+      if (!res.user.active || !res.user.plan) {
         navigate('/subscription');
       } else if (res.user.role === 'admin') {
         navigate('/admin');

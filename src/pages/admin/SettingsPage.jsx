@@ -1,8 +1,26 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, CreditCard, User, Shield } from 'lucide-react';
+import { Bell, CreditCard, User, Shield, Check } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(user?.plan || 'ultra');
+
+  const plans = [
+    { id: 'basic', name: 'Basic Package', price: 900, features: ['Cashier Dashboard', 'Sales Tracking', 'Product Management', 'Basic Reports'] },
+    { id: 'ultra', name: 'Ultra Package', price: 1600, features: ['Admin Dashboard', 'Recipe Builder', 'User Management', 'Advanced Analytics', 'Expense Tracking'] }
+  ];
+
+  const handleChangePlan = async () => {
+    const plan = plans.find(p => p.id === selectedPlan);
+    const role = selectedPlan === 'ultra' ? 'admin' : 'cashier';
+    await updateUser({ ...user, role, plan: selectedPlan, price: plan.price });
+    setShowPlanModal(false);
+    setTimeout(() => window.location.href = role === 'admin' ? '/admin' : '/cashier', 500);
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -53,7 +71,7 @@ export default function SettingsPage() {
               <label className="text-sm text-gray-600">Price</label>
               <p className="font-medium">KSH {user?.price || 1600}/month</p>
             </div>
-            <button className="btn-secondary text-sm">Change Plan</button>
+            <button onClick={() => setShowPlanModal(true)} className="btn-secondary text-sm">Change Plan</button>
           </div>
         </div>
 
@@ -95,6 +113,44 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Change Plan Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-2xl font-bold mb-6">Change Your Plan</h3>
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  onClick={() => setSelectedPlan(plan.id)}
+                  className={`card cursor-pointer transition-all ${
+                    selectedPlan === plan.id ? 'ring-4 ring-blue-600 bg-blue-50' : 'hover:shadow-lg'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-xl font-bold">{plan.name}</h4>
+                    {selectedPlan === plan.id && <Check className="w-6 h-6 text-blue-600" />}
+                  </div>
+                  <p className="text-3xl font-bold mb-4">KSH {plan.price}<span className="text-sm text-gray-600">/month</span></p>
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-600" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={handleChangePlan} className="btn-primary flex-1">Confirm Change</button>
+              <button onClick={() => setShowPlanModal(false)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
