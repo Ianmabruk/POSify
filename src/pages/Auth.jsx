@@ -40,17 +40,17 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 md:p-6">
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       <div className="card w-full max-w-md shadow-2xl backdrop-blur-sm bg-white/95 border-0 animate-fade-in relative z-10">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-            <span className="text-2xl font-bold text-white">POS</span>
+        <div className="text-center mb-6 md:mb-8">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-3 md:mb-4 flex items-center justify-center shadow-lg">
+            <span className="text-xl md:text-2xl font-bold text-white">POS</span>
           </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {isLogin ? 'Welcome Back' : 'Get Started'}
           </h1>
-          <p className="text-gray-600 text-sm">{isLogin ? 'Login to your account' : 'Create your account to continue'}</p>
+          <p className="text-gray-600 text-xs md:text-sm">{isLogin ? 'Login to your account' : 'Create your account to continue'}</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -94,7 +94,7 @@ export default function Auth() {
 
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}
 
-          <button type="submit" disabled={loading} className="btn-primary w-full text-lg py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          <button type="submit" disabled={loading} className="btn-primary w-full text-base md:text-lg py-2.5 md:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
