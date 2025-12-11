@@ -65,28 +65,26 @@ export default function Subscription() {
       // CRITICAL: Update localStorage FIRST before anything else
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // Also update token if it exists
-      const token = localStorage.getItem('token');
-      if (!token) {
-        // Create a basic token if none exists
-        const mockToken = btoa(JSON.stringify({ 
-          id: updatedUser.id, 
-          email: updatedUser.email, 
-          role: updatedUser.role 
-        }));
-        localStorage.setItem('token', mockToken);
-      }
+      // Also update token to include the new role
+      const newToken = btoa(JSON.stringify({ 
+        id: updatedUser.id, 
+        email: updatedUser.email, 
+        role: updatedUser.role,
+        plan: updatedUser.plan,
+        active: true
+      }));
+      localStorage.setItem('token', newToken);
       
-      // Try to update backend (but don't fail if it doesn't work)
-      try {
-        await updateUser(updatedUser);
-      } catch (err) {
-        console.warn('Backend update failed, continuing with local storage:', err);
-      }
+      // Update the auth context state immediately
+      await updateUser(updatedUser);
       
-      // Hard redirect to force page reload with new user data
+      // Wait a bit to ensure state is fully updated
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Use React Router navigation instead of hard redirect
+      // This preserves the SPA behavior and prevents page reload
       const targetPath = role === 'admin' ? '/admin' : '/cashier';
-      window.location.href = targetPath;
+      navigate(targetPath, { replace: true });
       
     } catch (error) {
       console.error('Subscription error:', error);

@@ -9,30 +9,68 @@ import CashierSettings from './pages/cashier/CashierSettings';
 import MainAdmin from './pages/MainAdmin';
 import DebugUser from './components/DebugUser';
 
+// Loading component
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-pulse">
+          <span className="text-2xl font-bold text-white">POS</span>
+        </div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ children, adminOnly = false }) {
-  const { user } = useAuth();
+  const { user, loading, isInitialized } = useAuth();
   
-  // No loading check - just check user immediately
-  if (!user) return <Navigate to="/" replace />;
+  // Wait for auth to initialize before making routing decisions
+  if (!isInitialized || loading) {
+    return <LoadingScreen />;
+  }
   
-  // Allow admin access if user has ultra plan OR admin role
-  const isAdmin = user.role === 'admin' || user.plan === 'ultra';
+  // Check if user is authenticated
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   
-  if (adminOnly && !isAdmin) return <Navigate to="/cashier" replace />;
+  // For admin-only routes, check if user has admin access
+  if (adminOnly) {
+    const isAdmin = user.plan === 'ultra' || user.role === 'admin';
+    
+    if (!isAdmin) {
+      console.log('Access denied - User does not have admin privileges:', user);
+      return <Navigate to="/cashier" replace />;
+    }
+  }
   
   return children;
 }
 
 function DashboardRouter() {
-  const { user } = useAuth();
+  const { user, loading, isInitialized } = useAuth();
   
-  // No loading check - immediate redirect
+  // Wait for auth to initialize
+  if (!isInitialized || loading) {
+    return <LoadingScreen />;
+  }
   
-  // Redirect based on role and subscription
-  if (!user?.active) return <Navigate to="/subscription" replace />;
+  // If no user, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   
-  // Ultra plan users go to admin, basic users go to cashier
-  if (user.plan === 'ultra' || user.role === 'admin') {
+  // If user doesn't have an active subscription, redirect to subscription page
+  if (!user.active || !user.plan) {
+    return <Navigate to="/subscription" replace />;
+  }
+  
+  // Route based on user's plan and role
+  const isAdmin = user.plan === 'ultra' || user.role === 'admin';
+  
+  if (isAdmin) {
     return <Navigate to="/admin" replace />;
   }
   
