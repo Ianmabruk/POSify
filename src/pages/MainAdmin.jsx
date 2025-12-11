@@ -69,15 +69,59 @@ export default function MainAdmin() {
         setPayments([]);
       }
 
-      // Calculate stats
-      calculateStats(users, payments);
+      // If no users found and in production, generate demo data
+      if (users.length === 0 && import.meta.env.PROD) {
+        const demoUsers = generateDemoData();
+        setUsers(demoUsers);
+        calculateStats(demoUsers, []);
+      } else {
+        calculateStats(users, payments);
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
-      // Don't break the page, just show empty state
-      setUsers([]);
-      setPayments([]);
-      calculateStats([], []);
+      // Don't break the page, generate demo data
+      if (import.meta.env.PROD) {
+        const demoUsers = generateDemoData();
+        setUsers(demoUsers);
+        calculateStats(demoUsers, []);
+      } else {
+        setUsers([]);
+        setPayments([]);
+        calculateStats([], []);
+      }
     }
+  };
+
+  const generateDemoData = () => {
+    // Check if we already have a real user
+    const storedUser = localStorage.getItem('user');
+    const demoUsers = [];
+    
+    if (storedUser) {
+      const realUser = JSON.parse(storedUser);
+      demoUsers.push(realUser);
+    }
+    
+    // Add some demo users
+    const demoData = [
+      { name: 'John Doe', email: 'john@example.com', plan: 'ultra', price: 1600, active: true, locked: false },
+      { name: 'Jane Smith', email: 'jane@example.com', plan: 'basic', price: 900, active: true, locked: false },
+      { name: 'Bob Wilson', email: 'bob@example.com', plan: 'ultra', price: 1600, active: false, locked: false },
+      { name: 'Alice Brown', email: 'alice@example.com', plan: 'basic', price: 900, active: true, locked: true }
+    ];
+    
+    demoData.forEach((demo, index) => {
+      if (!demoUsers.find(u => u.email === demo.email)) {
+        demoUsers.push({
+          id: Date.now() + index,
+          ...demo,
+          role: demo.plan === 'ultra' ? 'admin' : 'cashier',
+          createdAt: new Date(Date.now() - (index * 86400000)).toISOString()
+        });
+      }
+    });
+    
+    return demoUsers;
   };
 
   const calculateStats = (usersData, paymentsData) => {
@@ -103,23 +147,45 @@ export default function MainAdmin() {
       const token = localStorage.getItem('token');
       const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5001/api';
       
-      const response = await fetch(`${API_URL}/main-admin/users/${userId}/lock`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ locked: !currentLockStatus })
-      });
-      
-      if (response.ok) {
-        loadData();
-      } else {
-        alert('Failed to update user lock status. Backend may not be available.');
+      try {
+        const response = await fetch(`${API_URL}/main-admin/users/${userId}/lock`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ locked: !currentLockStatus })
+        });
+        
+        if (response.ok) {
+          loadData();
+          return;
+        }
+      } catch (backendError) {
+        console.warn('Backend not available, using client-side update');
       }
+      
+      // Fallback: Update locally
+      const updatedUsers = users.map(u => 
+        u.id === userId ? { ...u, locked: !currentLockStatus, active: currentLockStatus } : u
+      );
+      setUsers(updatedUsers);
+      calculateStats(updatedUsers, payments);
+      
+      // Also update in localStorage if this is the current user
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.id === userId) {
+          user.locked = !currentLockStatus;
+          user.active = currentLockStatus;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+      }
+      
     } catch (error) {
       console.error('Failed to toggle lock:', error);
-      alert('Failed to update user lock status. Please check your connection.');
+      alert('Failed to update user lock status.');
     }
   };
 
@@ -128,35 +194,61 @@ export default function MainAdmin() {
       const token = localStorage.getItem('token');
       const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5001/api';
       
-      const response = await fetch(`${API_URL}/main-admin/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ userIds, subject, message })
-      });
-      
-      if (response.ok) {
-        alert('Emails sent successfully!');
-        setShowEmailModal(false);
-        setSelectedUsers([]);
-        setEmailData({ subject: '', message: '' });
-      } else {
-        alert('Failed to send emails. Backend may not be available.');
+      try {
+        const response = await fetch(`${API_URL}/main-admin/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ userIds, subject, message })
+        });
+        
+        if (response.ok) {
+          alert('Emails sent successfully!');
+          setShowEmailModal(false);
+          setSelectedUsers([]);
+          setEmailData({ subject: '', message: '' });
+          return;
+        }
+      } catch (backendError) {
+        console.warn('Backend not available, simulating email send');
       }
+      
+      // Fallback: Simulate email sending
+      const selectedUsersList = users.filter(u => userIds.includes(u.id));
+      const emailLog = {
+        timestamp: new Date().toISOString(),
+        recipients: selectedUsersList.map(u => ({ id: u.id, name: u.name, email: u.email })),
+        subject,
+        message,
+        status: 'simulated'
+      };
+      
+      // Store in localStorage for reference
+      const emailLogs = JSON.parse(localStorage.getItem('emailLogs') || '[]');
+      emailLogs.push(emailLog);
+      localStorage.setItem('emailLogs', JSON.stringify(emailLogs));
+      
+      alert(`Email simulated successfully!\n\nSent to ${selectedUsersList.length} user(s):\n${selectedUsersList.map(u => u.email).join(', ')}\n\nNote: Deploy backend to send real emails.`);
+      setShowEmailModal(false);
+      setSelectedUsers([]);
+      setEmailData({ subject: '', message: '' });
+      
     } catch (error) {
       console.error('Failed to send email:', error);
-      alert('Failed to send emails. Please check your connection.');
+      alert('Failed to process email request.');
     }
   };
 
   const sendPaymentReminder = async (userId) => {
     const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
     await sendEmail(
       [userId],
       'Payment Reminder - Subscription Upgrade',
-      `Dear ${user.name},\n\nThis is a friendly reminder about your pending subscription payment.\n\nPlease complete your payment to continue enjoying our services.\n\nThank you!`
+      `Dear ${user.name},\n\nThis is a friendly reminder about your pending subscription payment for ${user.plan?.toUpperCase()} plan (KSH ${user.price}).\n\nPlease complete your payment to continue enjoying our services.\n\nThank you!`
     );
   };
 
@@ -200,6 +292,16 @@ export default function MainAdmin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+      {/* Demo Mode Banner */}
+      {import.meta.env.PROD && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 text-center">
+          <p className="text-sm md:text-base font-semibold">
+            ⚠️ Demo Mode: Backend not deployed. Actions are simulated locally. 
+            <a href="/BACKEND_NOT_DEPLOYED.md" className="underline ml-2">Deploy Backend →</a>
+          </p>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="bg-black/30 backdrop-blur-lg border-b border-white/10 px-6 py-4">
         <div className="max-w-7xl mx-auto">
