@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 app = Flask(__name__)
-CORS(app)
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['SECRET_KEY'] = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -807,4 +807,5 @@ def main_admin_update_payment(payment_id):
     return jsonify(payment)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
