@@ -31,28 +31,46 @@ export default function AdminDashboard() {
   const [isLocked, unlock] = useInactivity(45000); // 45 seconds
   const [appSettings, setAppSettings] = useState({});
 
+
   useEffect(() => {
     // CRITICAL: Ensure user data is correct and prevent unnecessary redirects
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      // If user has ultra plan or admin role, ensure they stay here
-      if (userData.plan === 'ultra' || userData.role === 'admin') {
-        // Ensure active flag is set
-        if (!userData.active) {
-          userData.active = true;
-          localStorage.setItem('user', JSON.stringify(userData));
-          // Force context to update by dispatching storage event
-          window.dispatchEvent(new Event('storage'));
-        }
-        // Ensure role matches plan
-        if (userData.plan === 'ultra' && userData.role !== 'admin') {
-          userData.role = 'admin';
-          localStorage.setItem('user', JSON.stringify(userData));
-          window.dispatchEvent(new Event('storage'));
+    const ensureUserData = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        let needsUpdate = false;
+        
+        // If user has ultra plan or admin role, ensure they stay here
+        if (userData.plan === 'ultra' || userData.role === 'admin') {
+          // Ensure active flag is set
+          if (!userData.active) {
+            userData.active = true;
+            needsUpdate = true;
+          }
+          // Ensure role matches plan
+          if (userData.plan === 'ultra' && userData.role !== 'admin') {
+            userData.role = 'admin';
+            needsUpdate = true;
+          }
+          // Ensure price is set
+          if (userData.plan === 'ultra' && (!userData.price || userData.price !== 1600)) {
+            userData.price = 1600;
+            needsUpdate = true;
+          }
+          
+          if (needsUpdate) {
+            localStorage.setItem('user', JSON.stringify(userData));
+            // Force context to update by dispatching storage event
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new Event('localStorageUpdated'));
+          }
         }
       }
-    }
+    };
+    
+    // Run immediately and also after a short delay to catch any async updates
+    ensureUserData();
+    setTimeout(ensureUserData, 100);
     
     // Show reminder modal on login
     setShowReminderModal(true);

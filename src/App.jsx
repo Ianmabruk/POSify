@@ -23,6 +23,7 @@ function LoadingScreen() {
   );
 }
 
+
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading, isInitialized } = useAuth();
   
@@ -38,10 +39,36 @@ function ProtectedRoute({ children, adminOnly = false }) {
   
   // For admin-only routes, check if user has admin access
   if (adminOnly) {
-    const isAdmin = user.plan === 'ultra' || user.role === 'admin';
+    // First check localStorage for the most up-to-date user data
+    const storedUser = localStorage.getItem('user');
+    let currentUser = user;
     
-    if (!isAdmin) {
-      console.log('Access denied - User does not have admin privileges:', user);
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        currentUser = { ...user, ...parsedUser };
+      } catch (error) {
+        console.warn('Error parsing stored user data:', error);
+      }
+    }
+    
+    const isAdmin = currentUser.plan === 'ultra' || currentUser.role === 'admin';
+    const hasValidSubscription = currentUser.active && currentUser.plan;
+    
+    if (!isAdmin || !hasValidSubscription) {
+      console.log('Access denied - User does not have admin privileges:', currentUser);
+      
+      // If user has ultra plan but wrong role, try to fix it
+      if (currentUser.plan === 'ultra' && currentUser.role !== 'admin') {
+        currentUser.role = 'admin';
+        currentUser.active = true;
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        window.dispatchEvent(new Event('storage'));
+        
+        // Return children if we just fixed the role
+        return children;
+      }
+      
       return <Navigate to="/cashier" replace />;
     }
   }

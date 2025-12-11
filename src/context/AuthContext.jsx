@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
+
   useEffect(() => {
     // Perform initial auth check
     const initializeAuth = () => {
@@ -34,6 +35,13 @@ export const AuthProvider = ({ children }) => {
           // Ensure role is set correctly based on plan
           if (parsedUser.plan === 'ultra' && parsedUser.role !== 'admin') {
             parsedUser.role = 'admin';
+            parsedUser.active = true;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+          }
+          
+          // Ensure active flag is set for ultra plan users
+          if (parsedUser.plan === 'ultra' && !parsedUser.active) {
+            parsedUser.active = true;
             localStorage.setItem('user', JSON.stringify(parsedUser));
           }
           
@@ -58,13 +66,27 @@ export const AuthProvider = ({ children }) => {
     // Listen for storage changes (from other tabs or manual updates)
     const handleStorageChange = (e) => {
       if (e.key === 'user' || e.key === 'token') {
-        initializeAuth();
+        // Add slight delay to ensure localStorage is fully updated
+        setTimeout(() => {
+          initializeAuth();
+        }, 50);
       }
     };
     
-    window.addEventListener('storage', handleStorageChange);
+    // Also listen for custom storage events triggered by subscription updates
+    const handleCustomStorageEvent = () => {
+      setTimeout(() => {
+        initializeAuth();
+      }, 100);
+    };
     
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorageUpdated', handleCustomStorageEvent);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageUpdated', handleCustomStorageEvent);
+    };
   }, []);
 
   const login = (token, userData) => {
