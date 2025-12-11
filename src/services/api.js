@@ -2,6 +2,7 @@ const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5001/api';
 
 const getToken = () => localStorage.getItem('token');
 
+
 const request = async (endpoint, options = {}) => {
   const token = getToken();
   const config = {
@@ -30,15 +31,7 @@ const request = async (endpoint, options = {}) => {
       console.warn(`API request failed: ${endpoint} - ${response.status}`);
       
       // Return appropriate empty data based on endpoint
-      if (endpoint.includes('/products')) return [];
-      if (endpoint.includes('/sales')) return [];
-      if (endpoint.includes('/expenses')) return [];
-      if (endpoint.includes('/users')) return [];
-      if (endpoint.includes('/reminders')) return [];
-      if (endpoint.includes('/stats')) return { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 };
-      if (endpoint.includes('/settings')) return { lockTimeout: 300000, currency: 'KSH' };
-      
-      return {};
+      return getFallbackData(endpoint);
     }
     
     const data = await response.json();
@@ -52,16 +45,45 @@ const request = async (endpoint, options = {}) => {
     console.warn(`API request error: ${endpoint}`, error);
     
     // Return appropriate empty data based on endpoint
-    if (endpoint.includes('/products')) return [];
-    if (endpoint.includes('/sales')) return [];
-    if (endpoint.includes('/expenses')) return [];
-    if (endpoint.includes('/users')) return [];
-    if (endpoint.includes('/reminders')) return [];
-    if (endpoint.includes('/stats')) return { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 };
-    if (endpoint.includes('/settings')) return { lockTimeout: 300000, currency: 'KSH' };
-    
-    return {};
+    return getFallbackData(endpoint);
   }
+};
+
+// Helper function to return appropriate fallback data
+const getFallbackData = (endpoint) => {
+  if (endpoint.includes('/products')) return [];
+  if (endpoint.includes('/sales')) return [];
+  if (endpoint.includes('/expenses')) return [];
+  if (endpoint.includes('/users')) return [];
+  if (endpoint.includes('/reminders')) return [];
+  if (endpoint.includes('/stats')) return { 
+    totalSales: 0, 
+    totalExpenses: 0, 
+    profit: 0, 
+    grossProfit: 0,
+    netProfit: 0,
+    totalCOGS: 0,
+    dailySales: 0,
+    weeklySales: 0,
+    productCount: 0
+  };
+  if (endpoint.includes('/settings')) return { 
+    lockTimeout: 300000, 
+    currency: 'KSH',
+    logo: '',
+    companyName: '',
+    address: ''
+  };
+  if (endpoint.includes('/service-fees')) return [];
+  if (endpoint.includes('/discounts')) return [];
+  if (endpoint.includes('/credit-requests')) return [];
+  if (endpoint.includes('/time-entries')) return [];
+  if (endpoint.includes('/categories')) return [];
+  if (endpoint.includes('/batches')) return [];
+  if (endpoint.includes('/production')) return [];
+  if (endpoint.includes('/price-history')) return [];
+  
+  return {};
 };
 
 export const auth = {

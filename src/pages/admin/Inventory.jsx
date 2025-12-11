@@ -32,9 +32,16 @@ export default function Inventory() {
     loadProducts();
   }, []);
 
+
   const loadProducts = async () => {
-    const data = await productsApi.getAll();
-    setProducts(data);
+    try {
+      const data = await productsApi.getAll();
+      // Ensure we always have an array
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to load products:', error);
+      setProducts([]);
+    }
   };
 
   const handleAddProduct = async (e) => {
@@ -74,7 +81,9 @@ export default function Inventory() {
     }
   };
 
-  const filteredProducts = products.filter(p => {
+
+  const filteredProducts = (products || []).filter(p => {
+    if (!p) return false;
     const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || 
       (filter === 'raw' && !p.recipe) ||
@@ -84,16 +93,18 @@ export default function Inventory() {
     return matchesSearch && matchesFilter;
   });
 
-  const rawProducts = products.filter(p => !p.recipe && !p.expenseOnly);
-  const compositeProducts = products.filter(p => p.recipe);
-  const expenseProducts = products.filter(p => p.expenseOnly);
+  const rawProducts = (products || []).filter(p => p && !p.recipe && !p.expenseOnly);
+  const compositeProducts = (products || []).filter(p => p && p.recipe);
+  const expenseProducts = (products || []).filter(p => p && p.expenseOnly);
+
 
   const calculateMaxProducible = (product) => {
-    if (!product.recipe) return 0;
+    if (!product || !product.recipe) return 0;
     let max = Infinity;
-    product.recipe.forEach(ingredient => {
-      const raw = products.find(p => p.id === ingredient.productId);
-      if (raw) {
+    (product.recipe || []).forEach(ingredient => {
+      if (!ingredient) return;
+      const raw = (products || []).find(p => p && p.id === ingredient.productId);
+      if (raw && raw.quantity > 0 && ingredient.quantity > 0) {
         const possible = Math.floor(raw.quantity / ingredient.quantity);
         max = Math.min(max, possible);
       }
@@ -102,13 +113,15 @@ export default function Inventory() {
   };
 
   const calculateCOGS = (product) => {
+    if (!product) return 0;
     if (!product.recipe) return product.cost || 0;
     let totalCost = 0;
-    product.recipe.forEach(ingredient => {
-      const raw = products.find(p => p.id === ingredient.productId);
-      if (raw) {
-        const unitCost = raw.cost / raw.quantity;
-        totalCost += unitCost * ingredient.quantity;
+    (product.recipe || []).forEach(ingredient => {
+      if (!ingredient) return;
+      const raw = (products || []).find(p => p && p.id === ingredient.productId);
+      if (raw && raw.quantity > 0) {
+        const unitCost = (raw.cost || 0) / raw.quantity;
+        totalCost += unitCost * (ingredient.quantity || 0);
       }
     });
     return totalCost;
@@ -184,8 +197,10 @@ export default function Inventory() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {filteredProducts.map((product) => {
+              {(filteredProducts || []).map((product) => {
+                if (!product) return null;
                 const cogs = calculateCOGS(product);
                 const margin = product.price ? (((product.price - cogs) / product.price) * 100).toFixed(1) : 0;
                 const maxUnits = calculateMaxProducible(product);
@@ -279,17 +294,19 @@ export default function Inventory() {
                                   <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Total Cost</th>
                                 </tr>
                               </thead>
+
                               <tbody>
-                                {product.recipe.map((ingredient, idx) => {
-                                  const raw = products.find(p => p.id === ingredient.productId);
+                                {(product.recipe || []).map((ingredient, idx) => {
+                                  if (!ingredient) return null;
+                                  const raw = (products || []).find(p => p && p.id === ingredient.productId);
                                   if (!raw) return null;
-                                  const unitCost = raw.cost / raw.quantity;
-                                  const totalCost = unitCost * ingredient.quantity;
+                                  const unitCost = (raw.cost || 0) / (raw.quantity || 1);
+                                  const totalCost = unitCost * (ingredient.quantity || 0);
                                   return (
                                     <tr key={idx} className="border-t border-blue-100">
-                                      <td className="px-3 py-2">{raw.name}</td>
-                                      <td className="px-3 py-2">{ingredient.quantity} {raw.unit}</td>
-                                      <td className="px-3 py-2">{raw.quantity} {raw.unit}</td>
+                                      <td className="px-3 py-2">{raw.name || 'Unknown'}</td>
+                                      <td className="px-3 py-2">{ingredient.quantity || 0} {raw.unit || 'pcs'}</td>
+                                      <td className="px-3 py-2">{raw.quantity || 0} {raw.unit || 'pcs'}</td>
                                       <td className="px-3 py-2">KSH {unitCost.toFixed(2)}</td>
                                       <td className="px-3 py-2 font-semibold">KSH {totalCost.toFixed(2)}</td>
                                     </tr>

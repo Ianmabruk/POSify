@@ -1,172 +1,201 @@
-# POSify - Modern POS System
+# 🏪 Universal POS System
 
-A complete Point of Sale system with role-based dashboards, inventory management, recipe builder, and automatic stock deduction.
+A complete Point of Sale system with admin and cashier roles, built with React, Flask, and Tailwind CSS.
 
-## 🚀 Features
+## ✅ Currently Running
 
-### Admin Dashboard (Ultra Package - KSH 1,600/month)
-- Full inventory management (raw materials + composite products)
-- Recipe/BOM Builder with automatic COGS calculation
-- Automatic stock deduction on sales
-- User management with permission controls
-- Expense tracking (manual + automatic)
-- Advanced analytics and reports
-- Sales tracking with profit margins
+Both servers are currently running:
+- **Frontend**: http://localhost:3004 (or check terminal for actual port)
+- **Backend**: http://localhost:5001
 
-### Cashier Dashboard (Basic Package - KSH 900/month)
-- Point of Sale interface
-- Sales tracking
-- Daily/Weekly summaries
-- Basic inventory view
-- Limited permissions
+## 🚀 Quick Start
 
-## 🛠️ Tech Stack
-
-- **Frontend:** React 18 + Vite
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React
-- **Routing:** React Router v6
-- **Backend:** Flask (Python) / Netlify Functions
-- **Auth:** JWT tokens
-- **Storage:** JSON files / In-memory (Netlify)
-
-## 📦 Installation
+### Option 1: Use the Start Script (Easiest)
 
 ```bash
-# Install dependencies
-npm install
-
-# Install Python dependencies (for local backend)
-pip install -r requirements.txt
+cd my-react-app
+./start-all.sh
 ```
 
-## 🏃 Running Locally
+This will start both frontend and backend servers automatically.
 
-### Option 1: Using start script
+### Option 2: Manual Start (Two Terminals)
+
+**Terminal 1 - Backend:**
 ```bash
-./start.sh
+cd my-react-app/src/backend
+python3 app.py
 ```
 
-### Option 2: Manual start
+**Terminal 2 - Frontend:**
 ```bash
-# Terminal 1 - Backend
-cd src/backend && python3 app.py
-
-# Terminal 2 - Frontend
+cd my-react-app
 npm run dev
 ```
 
-Visit: http://localhost:5173
+## 📦 Installation
 
-## 🌐 Deploy to Netlify
+If you need to install dependencies:
 
-### Step 1: Generate JWT Secret
 ```bash
-node generate-secret.cjs
-```
-Copy the generated secret.
+# Install frontend dependencies
+npm install
 
-### Step 2: Deploy
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Login
-netlify login
-
-# Deploy
-netlify deploy --prod
+# Install backend dependencies
+pip install -r requirements.txt
 ```
 
-### Step 3: Add Environment Variable
-1. Go to https://app.netlify.com
-2. Select your site
-3. Site settings → Environment variables
-4. Add: `JWT_SECRET` = (your generated secret)
-5. Redeploy site
+## 🌐 Access the Application
 
-## 📖 Usage
+1. Open your browser to the frontend URL (shown in terminal)
+2. **Sign up** for a new account (first user becomes admin)
+3. **Select a plan**:
+   - **Basic** (KSH 900) - Cashier access
+   - **Ultra** (KSH 1,600) - Admin access
+4. Access your dashboard based on your role
 
-### First Time Setup
-1. Sign up (first user becomes Admin with Ultra package)
-2. Add raw materials in Inventory
-3. Create recipes for composite products
-4. Add cashiers with custom permissions
-5. Start making sales!
+## 👥 User Roles
 
-### Key Workflows
+### Admin (Ultra Package)
+- Full dashboard with analytics
+- Inventory management
+- Recipe/BOM builder
+- User management
+- Expense tracking
+- Sales reports
+- Time tracking
+- Reminders
+- Service fees
+- Discounts
+- Credit requests
 
-**Creating Composite Products:**
-1. Admin → Recipes/BOM → Create Recipe
-2. Add ingredients with quantities
-3. System auto-calculates COGS and profit margin
+### Cashier (Basic Package)
+- POS interface
+- Process sales
+- View inventory (limited)
+- Basic permissions
 
-**Making Sales:**
-1. Cashier → POS
-2. Add products to cart
-3. Select payment method
-4. Complete sale
-5. Stock automatically deducted!
+## 🛑 Stopping the Servers
 
-**Adding Cashiers:**
-1. Admin → Users → Add Cashier
-2. Set permissions
-3. Default password: changeme123
+If using `start-all.sh`: Press `Ctrl+C`
 
-## 🔐 Security
+If running manually: Press `Ctrl+C` in each terminal window
 
-- JWT token authentication
-- Role-based access control
-- Admin-only endpoints protected
-- Secure password handling
+## 🔧 Troubleshooting
 
-## 📊 Features Breakdown
+### Port Already in Use
 
-### Automatic Stock Deduction
-When selling composite products:
-- Ingredients automatically deducted from inventory
-- COGS calculated based on ingredient costs
-- Expense-only items tracked separately
-
-### Recipe/BOM Builder
-- Create products from raw materials
-- Define ingredient quantities
-- Auto-calculate production costs
-- Track max producible units
-
-### Permission System
-- Granular permission controls
-- View Sales, View Inventory, View Expenses, Manage Products
-- Admin can customize per cashier
-
-## 🐛 Troubleshooting
-
-**Build fails:**
 ```bash
-npm run build
+# Kill process on port 5001 (backend)
+lsof -ti:5001 | xargs kill -9
+
+# Kill process on port 3004 (frontend)
+lsof -ti:3004 | xargs kill -9
 ```
 
-**Clear data:**
-```bash
-rm src/backend/data/*.json
+### Blank Screen / React Not Loading
+
+1. Make sure both servers are running
+2. Clear browser cache and localStorage
+3. Check browser console (F12) for errors
+4. Restart the dev server: `npm run dev`
+
+### Backend Not Connecting
+
+1. Verify Flask is installed: `pip list | grep Flask`
+2. Check backend is running: `curl http://localhost:5001/api/stats`
+3. Install requirements: `pip install -r requirements.txt`
+
+## 🌍 Deployment
+
+### Deploy to Netlify
+
+1. **Install Netlify CLI:**
+   ```bash
+   npm install -g netlify-cli
+   ```
+
+2. **Login to Netlify:**
+   ```bash
+   netlify login
+   ```
+
+3. **Deploy:**
+   ```bash
+   netlify deploy --prod
+   ```
+
+4. **Set Environment Variable:**
+   - Go to https://app.netlify.com
+   - Select your site
+   - Site settings → Environment variables
+   - Add: `JWT_SECRET` (generate using `node generate-secret.cjs`)
+
+See [DEPLOY.md](./DEPLOY.md) for detailed deployment instructions.
+
+## 📁 Project Structure
+
+```
+my-react-app/
+├── src/
+│   ├── backend/          # Flask backend API
+│   │   └── app.py
+│   ├── components/       # React components
+│   ├── context/          # React context (Auth)
+│   ├── pages/           # Page components
+│   │   ├── admin/       # Admin dashboard pages
+│   │   └── cashier/     # Cashier POS pages
+│   ├── services/        # API service layer
+│   ├── App.jsx          # Main app component
+│   └── main.jsx         # Entry point
+├── netlify/
+│   └── functions/       # Netlify serverless functions
+├── public/              # Static assets
+├── start-all.sh         # Startup script
+└── package.json
 ```
 
-**Reset localStorage:**
-Open DevTools → Application → Local Storage → Clear All
+## 🔑 Key Features
 
-## 📝 License
+- ✅ Role-based authentication
+- ✅ Admin dashboard with analytics
+- ✅ Cashier POS interface
+- ✅ Inventory management
+- ✅ Recipe/BOM builder with auto COGS
+- ✅ Automatic stock deduction
+- ✅ User management
+- ✅ Expense tracking
+- ✅ Time tracking
+- ✅ Reminders system
+- ✅ Service fees
+- ✅ Discounts
+- ✅ Credit requests
+- ✅ Screen lock on inactivity
+- ✅ Modern gradient UI
 
-Proprietary
+## 📚 Documentation
 
-## 👨‍💻 Author
+- [HOW_TO_RUN.md](./HOW_TO_RUN.md) - Detailed running instructions
+- [DEPLOY.md](./DEPLOY.md) - Deployment guide
+- [BACKEND_AUTH_FIX.md](./BACKEND_AUTH_FIX.md) - Authentication fix details
+- [TODO.md](./TODO.md) - Feature checklist
 
-Ian Mabruk
+## 🐛 Known Issues
 
-## 🔗 Links
+All major issues have been fixed:
+- ✅ Admin dashboard blank screen - FIXED
+- ✅ Backend authentication 401 errors - FIXED
+- ✅ Token format mismatch - FIXED
+- ✅ Syntax error in App.jsx - FIXED
 
-- GitHub: https://github.com/Ianmabruk/POSify
-- Live Demo: (Add after deployment)
+## 💡 Tips
+
+- First user to sign up automatically gets admin access
+- Admin can add cashiers from the Users page
+- Cashiers need to set their password on first login
+- Use the screen lock feature for security
+- Set up reminders for important tasks
 
 ---
 
-Built with ❤️ using React + Vite
+**Need help?** Check the documentation files or the browser console for errors.

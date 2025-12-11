@@ -8,6 +8,7 @@ import CashierPOS from './pages/cashier/CashierPOS';
 import CashierSettings from './pages/cashier/CashierSettings';
 import MainAdmin from './pages/MainAdmin';
 import DebugUser from './components/DebugUser';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Loading component
 function LoadingScreen() {
@@ -104,24 +105,27 @@ function DashboardRouter() {
   return <Navigate to="/cashier" replace />;
 }
 
+
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <DebugUser />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/signup" element={<Auth />} />
-          <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
-          <Route path="/admin/*" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/cashier" element={<ProtectedRoute><CashierPOS /></ProtectedRoute>} />
-          <Route path="/cashier/settings" element={<ProtectedRoute><CashierSettings /></ProtectedRoute>} />
-          <Route path="/main.admin" element={<MainAdmin />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <DebugUser />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/signup" element={<Auth />} />
+            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
+            <Route path="/admin/*" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/cashier" element={<ProtectedRoute><CashierPOS /></ProtectedRoute>} />
+            <Route path="/cashier/settings" element={<ProtectedRoute><CashierSettings /></ProtectedRoute>} />
+            <Route path="/main.admin" element={<MainAdmin />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
