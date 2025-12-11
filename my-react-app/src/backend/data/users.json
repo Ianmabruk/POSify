@@ -1,0 +1,132 @@
+[
+  {
+    "id": 1,
+    "email": "asdf@gmail.com",
+    "password": "123456789",
+    "role": "cashier",
+    "name": "sdfg",
+    "createdAt": "2025-12-08T12:34:52.950123",
+    "locked": false,
+    "active": false
+  },
+  {
+    "id": 2,
+    "email": "as@gmail.com",
+    "password": "1234",
+    "role": "cashier",
+    "name": "asdfg",
+    "createdAt": "2025-12-08T13:08:58.893466",
+    "locked": false
+  },
+  {
+    "id": 3,
+    "email": "iuhi@gmail.com",
+    "password": "2345",
+    "role": "cashier",
+    "name": "ifhjbn",
+    "createdAt": "2025-12-08T14:04:34.661724",
+    "locked": false
+  },
+  {
+    "id": 5,
+    "email": "xcv@gmail.com",
+    "password": "234567",
+    "role": "admin",
+    "name": "wertui",
+    "active": true,
+    "plan": "professional",
+    "price": 1600,
+    "createdAt": "2025-12-08T16:32:28.241760",
+    "locked": false
+  },
+  {
+    "id": 6,
+    "email": "ggh@gmail.com",
+    "password": "4567",
+    "name": "erty",
+    "role": "admin",
+    "plan": "ultra",
+    "price": 1600,
+    "active": true,
+    "permissions": {
+      "manageProducts": false,
+      "viewExpenses": false,
+      "viewInventory": true,
+      "viewSales": true
+    },
+    "createdAt": "2025-12-08T16:48:46.791312",
+    "locked": false
+  },
+  {
+    "id": 7,
+    "email": "dede@gmail.com",
+    "password": "3456",
+    "name": "dede",
+    "role": "admin",
+    "plan": "ultra",
+    "price": 1600,
+    "active": true,
+    "permissions": {
+      "manageProducts": false,
+      "viewExpenses": false,
+      "viewInventory": true,
+      "viewSales": true
+    },
+    "createdAt": "2025-12-08T16:55:58.756759",
+    "locked": false
+  },
+  {
+    "id": 8,
+    "email": "tui@gmail.com",
+    "password": "123",
+    "name": "tui",
+    "role": "admin",
+    "plan": "ultra",
+    "price": 1600,
+    "active": true,
+    "permissions": {
+      "manageProducts": false,
+      "viewExpenses": false,
+      "viewInventory": true,
+      "viewSales": true
+    },
+    "createdAt": "2025-12-08T17:00:45.980687",
+    "locked": false
+  },
+  {
+    "id": 9,
+    "email": "ianmabruk3@gmail.com",
+    "password": "445",
+    "name": "ian mabruk",
+    "role": "admin",
+    "plan": "ultra",
+    "price": 1600,
+    "active": true,
+    "permissions": {
+      "manageProducts": false,
+      "viewExpenses": false,
+      "viewInventory": true,
+      "viewSales": true
+    },
+    "createdAt": "2025-12-11T11:31:33.227837",
+    "locked": false
+  },
+  {
+    "id": 9,
+    "email": "ianmabruk3@gmail.com",
+    "password": "12345",
+    "name": "ian mabruk",
+    "role": "cashier",
+    "plan": null,
+    "price": null,
+    "active": false,
+    "permissions": {
+      "viewSales": true,
+      "viewInventory": true,
+      "viewExpenses": false,
+      "manageProducts": false
+    },
+    "createdAt": "2025-12-11T11:31:33.227837",
+    "locked": false
+  }
+]
