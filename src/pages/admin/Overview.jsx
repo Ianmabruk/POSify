@@ -16,9 +16,22 @@ export default function Overview() {
         stats.get(),
         salesApi.getAll()
       ]);
-      setData({ stats: statsData, recentSales: salesData.slice(-10).reverse() });
+      
+      // Ensure we have valid data structures
+      const validStats = statsData || { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 };
+      const validSales = Array.isArray(salesData) ? salesData : [];
+      
+      setData({ 
+        stats: validStats, 
+        recentSales: validSales.slice(-10).reverse() 
+      });
     } catch (error) {
       console.error('Failed to load data:', error);
+      // Set empty data on error
+      setData({ 
+        stats: { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 }, 
+        recentSales: [] 
+      });
     } finally {
       setLoading(false);
     }

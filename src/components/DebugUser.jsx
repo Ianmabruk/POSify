@@ -14,11 +14,11 @@ export default function DebugUser() {
         <p>User: {user ? 'Logged in' : 'Not logged in'}</p>
         {user && (
           <>
-            <p>Email: {user.email}</p>
-            <p>Role: {user.role}</p>
-            <p>Plan: {user.plan}</p>
-            <p>Active: {user.active ? 'Yes' : 'No'}</p>
-            <p>Price: {user.price}</p>
+            <p>Email: {user?.email || 'N/A'}</p>
+            <p>Role: {user?.role || 'N/A'}</p>
+            <p>Plan: {user?.plan || 'N/A'}</p>
+            <p>Active: {user?.active ? 'Yes' : 'No'}</p>
+            <p>Price: {user?.price || 'N/A'}</p>
           </>
         )}
       </div>

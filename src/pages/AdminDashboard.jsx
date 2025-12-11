@@ -16,13 +16,26 @@ export default function AdminDashboard() {
   }, []);
 
   const loadData = async () => {
-    const [p, s, e, st] = await Promise.all([
-      products.getAll(),
-      sales.getAll(),
-      expenses.getAll(),
-      stats.get()
-    ]);
-    setData({ products: p, sales: s, expenses: e, stats: st });
+    try {
+      const [p, s, e, st] = await Promise.all([
+        products.getAll(),
+        sales.getAll(),
+        expenses.getAll(),
+        stats.get()
+      ]);
+      
+      // Ensure we have valid data structures
+      setData({ 
+        products: Array.isArray(p) ? p : [], 
+        sales: Array.isArray(s) ? s : [], 
+        expenses: Array.isArray(e) ? e : [], 
+        stats: st || {} 
+      });
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      // Set empty data on error
+      setData({ products: [], sales: [], expenses: [], stats: {} });
+    }
   };
 
   const handleAddProduct = async (e) => {

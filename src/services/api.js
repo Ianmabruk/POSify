@@ -13,11 +13,55 @@ const request = async (endpoint, options = {}) => {
     }
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, config);
-  const data = await response.json();
-  
-  if (!response.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, config);
+    
+    // For auth endpoints, throw errors so they can be caught and handled with fallback
+    if (endpoint.includes('/auth/')) {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
+        throw new Error(errorData.error || 'Authentication failed');
+      }
+      return await response.json();
+    }
+    
+    // For other endpoints, return empty data on failure
+    if (!response.ok) {
+      console.warn(`API request failed: ${endpoint} - ${response.status}`);
+      
+      // Return appropriate empty data based on endpoint
+      if (endpoint.includes('/products')) return [];
+      if (endpoint.includes('/sales')) return [];
+      if (endpoint.includes('/expenses')) return [];
+      if (endpoint.includes('/users')) return [];
+      if (endpoint.includes('/reminders')) return [];
+      if (endpoint.includes('/stats')) return { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 };
+      if (endpoint.includes('/settings')) return { lockTimeout: 300000, currency: 'KSH' };
+      
+      return {};
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // For auth endpoints, re-throw the error
+    if (endpoint.includes('/auth/')) {
+      throw error;
+    }
+    
+    console.warn(`API request error: ${endpoint}`, error);
+    
+    // Return appropriate empty data based on endpoint
+    if (endpoint.includes('/products')) return [];
+    if (endpoint.includes('/sales')) return [];
+    if (endpoint.includes('/expenses')) return [];
+    if (endpoint.includes('/users')) return [];
+    if (endpoint.includes('/reminders')) return [];
+    if (endpoint.includes('/stats')) return { totalSales: 0, totalExpenses: 0, profit: 0, grossProfit: 0 };
+    if (endpoint.includes('/settings')) return { lockTimeout: 300000, currency: 'KSH' };
+    
+    return {};
+  }
 };
 
 export const auth = {

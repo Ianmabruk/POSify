@@ -90,7 +90,20 @@ export default function Auth() {
         return;
       }
 
-      login(res.token, res.user);
+      // Ensure we have valid user data before proceeding
+      if (!res || !res.user) {
+        console.error('Invalid response:', res);
+        throw new Error('Authentication failed. Please try again.');
+      }
+      
+      // If no token, this might be client-side auth, generate one
+      const token = res.token || btoa(JSON.stringify({ 
+        id: res.user.id, 
+        email: res.user.email, 
+        role: res.user.role 
+      }));
+      
+      login(token, res.user);
       
       // Cashiers added by admin go directly to cashier dashboard
       if (res.user.role === 'cashier' && res.user.addedByAdmin) {
