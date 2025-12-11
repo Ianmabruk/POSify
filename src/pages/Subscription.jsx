@@ -62,24 +62,31 @@ export default function Subscription() {
         active: true 
       };
       
-      // Update localStorage first
+      // CRITICAL: Update localStorage FIRST before anything else
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // Update user in context
+      // Also update token if it exists
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // Create a basic token if none exists
+        const mockToken = btoa(JSON.stringify({ 
+          id: updatedUser.id, 
+          email: updatedUser.email, 
+          role: updatedUser.role 
+        }));
+        localStorage.setItem('token', mockToken);
+      }
+      
+      // Try to update backend (but don't fail if it doesn't work)
       try {
         await updateUser(updatedUser);
       } catch (err) {
-        console.warn('Backend update failed, using local storage:', err);
+        console.warn('Backend update failed, continuing with local storage:', err);
       }
       
-      // Simple redirect without complex timing
+      // Hard redirect to force page reload with new user data
       const targetPath = role === 'admin' ? '/admin' : '/cashier';
-      navigate(targetPath);
-      
-      // Force reload after navigation to ensure clean state
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      window.location.href = targetPath;
       
     } catch (error) {
       console.error('Subscription error:', error);

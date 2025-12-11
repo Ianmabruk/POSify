@@ -10,16 +10,9 @@ import MainAdmin from './pages/MainAdmin';
 import DebugUser from './components/DebugUser';
 
 function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-  
+  // No loading check - just check user immediately
   if (!user) return <Navigate to="/" replace />;
   
   // Allow admin access if user has ultra plan OR admin role
@@ -31,15 +24,9 @@ function ProtectedRoute({ children, adminOnly = false }) {
 }
 
 function DashboardRouter() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // No loading check - immediate redirect
   
   // Redirect based on role and subscription
   if (!user?.active) return <Navigate to="/subscription" replace />;
